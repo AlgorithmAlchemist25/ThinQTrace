@@ -1,12 +1,39 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import TaskInterface from './components/TaskInterface'; // We'll rename this to TypingTest later
 import ReactionTest from './tests/ReactionTest';
 import AttentionTest from './tests/AttentionTest';
-import { BrainCircuit } from 'lucide-react';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import Tests from './pages/Tests';
+import Research from './pages/Research';
+import DrawingTest from './tests/DrawingTest';
+import { BrainCircuit, LogOut } from 'lucide-react';
 
 function App() {
+    const [user, setUser] = useState(null);
+
+    useEffect(() => {
+        const checkAuth = () => {
+            const token = localStorage.getItem('token');
+            const username = localStorage.getItem('username');
+            if (token && username) {
+                setUser({ username });
+            } else {
+                setUser(null);
+            }
+        };
+        checkAuth();
+        window.addEventListener('authChange', checkAuth);
+        return () => window.removeEventListener('authChange', checkAuth);
+    }, []);
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('username');
+        window.dispatchEvent(new Event('authChange'));
+    };
     return (
         <BrowserRouter>
             <div className="min-h-screen bg-[#110C0A] font-sans flex flex-col selection:bg-amber-500/30 selection:text-amber-200 relative text-[#FDFBF9]">
@@ -31,18 +58,27 @@ function App() {
                     </h1>
                 </Link>
                 <div className="hidden md:flex space-x-10 text-sm font-semibold text-[#A6958E]">
-                    <Link to="/" className="text-amber-400 border-b-2 border-amber-500 pb-1">Dashboard</Link>
-                    <span className="hover:text-amber-400 cursor-pointer transition-colors">Tests</span>
+                    <Link to="/" className="hover:text-amber-400 cursor-pointer transition-colors">Dashboard</Link>
+                    <Link to="/tests" className="hover:text-amber-400 cursor-pointer transition-colors">Tests</Link>
                     <span className="hover:text-amber-400 cursor-pointer transition-colors">Insights</span>
-                    <span className="hover:text-amber-400 cursor-pointer transition-colors">Research</span>
+                    <Link to="/research" className="hover:text-amber-400 cursor-pointer transition-colors">Research</Link>
                 </div>
                 <div className="flex items-center space-x-4">
-                     <button className="text-[#A6958E] hover:text-amber-400 transition-colors">
-                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-                     </button>
-                     <div className="w-10 h-10 rounded-full bg-[#1F1715] border border-white/10 shadow-sm overflow-hidden flex items-center justify-center">
-                         <span className="text-[#D4C3BA] font-bold text-sm">US</span>
-                     </div>
+                     {user ? (
+                         <>
+                             <div className="w-10 h-10 rounded-full bg-[#1F1715] border border-white/10 shadow-sm overflow-hidden flex items-center justify-center" title={user.username}>
+                                 <span className="text-[#D4C3BA] font-bold text-sm">{user.username.substring(0, 2).toUpperCase()}</span>
+                             </div>
+                             <button onClick={handleLogout} className="text-[#A6958E] hover:text-amber-400 transition-colors" title="Logout">
+                                 <LogOut className="w-5 h-5" />
+                             </button>
+                         </>
+                     ) : (
+                         <>
+                             <Link to="/login" className="text-sm font-semibold text-[#A6958E] hover:text-[#FDFBF9] transition-colors">Login</Link>
+                             <Link to="/signup" className="text-sm font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20 px-4 py-2 rounded-xl hover:bg-amber-500/20 transition-colors">Sign Up</Link>
+                         </>
+                     )}
                 </div>
             </div>
         </nav>
@@ -51,9 +87,14 @@ function App() {
                 <main className="flex-grow w-full py-8">
                     <Routes>
                         <Route path="/" element={<Dashboard />} />
+                        <Route path="/tests" element={<Tests />} />
                         <Route path="/test/typing" element={<TaskInterface />} />
                         <Route path="/test/reaction" element={<ReactionTest />} />
                         <Route path="/test/attention" element={<AttentionTest />} />
+                        <Route path="/test/drawing" element={<DrawingTest />} />
+                        <Route path="/research" element={<Research />} />
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/signup" element={<Signup />} />
                     </Routes>
                 </main>
 

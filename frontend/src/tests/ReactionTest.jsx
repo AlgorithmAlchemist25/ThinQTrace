@@ -7,19 +7,27 @@ export default function ReactionTest() {
   const [gameState, setGameState] = useState('waiting'); // waiting, ready, active, done
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [round, setRound] = useState(1);
+  const [avgTime, setAvgTime] = useState(0);
   
   const startTime = useRef(0);
   const timeoutId = useRef(null);
   const events = useRef([]);
   const sessionId = useRef(crypto.randomUUID());
 
-  const handleStart = () => {
-    setGameState('ready');
+  const handleStartGame = () => {
+    setRound(1);
     setResult(null);
     events.current = [];
+    startRound(1);
+  };
+
+  const startRound = (currentRound) => {
+    setGameState('ready');
     
-    // Random delay between 2 to 5 seconds
-    const delay = Math.floor(Math.random() * 3000) + 2000;
+    // Random delay between 1.5 to (2 + round) seconds
+    const maxDelay = 2000 + (currentRound * 1000);
+    const delay = Math.floor(Math.random() * maxDelay) + 1500;
     
     timeoutId.current = setTimeout(() => {
       setGameState('active');
@@ -28,6 +36,11 @@ export default function ReactionTest() {
   };
 
   const handleClick = async () => {
+    if (gameState === 'waiting') {
+      handleStartGame();
+      return;
+    }
+
     if (gameState === 'ready') {
       // Clicked too early (false start)
       clearTimeout(timeoutId.current);
@@ -39,28 +52,34 @@ export default function ReactionTest() {
     if (gameState === 'active') {
       const responseTime = Date.now() - startTime.current;
       
-      // Record the single event
       events.current.push({
           key: "mouse_click",
           timestamp: responseTime, 
           eventType: "reaction_click"
       });
 
-      setGameState('done');
-      await submitData(responseTime);
+      if (round < 5) {
+        setRound(r => r + 1);
+        startRound(round + 1);
+      } else {
+        setGameState('done');
+        const avg = Math.round(events.current.reduce((acc, curr) => acc + curr.timestamp, 0) / events.current.length);
+        setAvgTime(avg);
+        await submitData(avg);
+      }
     }
   };
 
-  const submitData = async (responseTimeMs) => {
+  const submitData = async (avgResponseTime) => {
     setLoading(true);
     try {
       const response = await axios.post('http://localhost:8000/api/submit-data', {
         sessionId: sessionId.current,
         taskType: 'reaction-test',
-        events: events.current
+        events: events.current,
+        token: localStorage.getItem('token')
       });
-      // The backend will just return raw metrics for now, we will override it here for display
-      setResult({ ...response.data, responseTimeMs });
+      setResult({ ...response.data, responseTimeMs: avgResponseTime });
     } catch (error) {
       console.error("Error submitting data", error);
     }
@@ -73,87 +92,75 @@ export default function ReactionTest() {
   }, []);
 
   return (
-    <div className="max-w-4xl mx-auto animate-in fade-in zoom-in-95 duration-500">
+    <div className="max-w-4xl mx-auto animate-in fade-in zoom-in-95 duration-500 pb-12">
       
       <div className="mb-8 flex items-center justify-between">
           <div>
-            <Link to="/" className="inline-flex items-center text-slate-500 hover:text-blue-600 font-semibold mb-2 transition-colors">
+            <Link to="/" className="inline-flex items-center text-[#A6958E] hover:text-amber-400 font-semibold mb-2 transition-colors">
                 <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
             </Link>
-            <h2 className="text-4xl font-extrabold text-slate-900 tracking-tight">Reaction Test</h2>
+            <h2 className="text-4xl font-black text-[#FDFBF9] tracking-tight">Reaction Test</h2>
           </div>
-          <div className="bg-amber-100 p-4 rounded-2xl">
-              <Zap className="w-10 h-10 text-amber-600" />
+          <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-2xl">
+              <Zap className="w-10 h-10 text-amber-400" />
           </div>
       </div>
 
-      <div className="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
+      <div className="bg-[#1F1715]/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/5 overflow-hidden">
         
         {/* Interactive Area */}
         <div 
             onClick={handleClick}
-            className={`h-96 w-full flex flex-col items-center justify-center cursor-pointer transition-colors duration-200 ${
-                gameState === 'waiting' || gameState === 'done' ? 'bg-slate-50 hover:bg-slate-100' :
-                gameState === 'ready' ? 'bg-red-500 text-white' :
-                gameState === 'active' ? 'bg-emerald-500 text-white' : ''
+            className={`h-[32rem] w-full flex flex-col items-center justify-center cursor-pointer transition-colors duration-200 relative overflow-hidden ${
+                gameState === 'waiting' || gameState === 'done' ? 'bg-[#110C0A] hover:bg-[#1A1311]' :
+                gameState === 'ready' ? 'bg-red-500 text-white shadow-[inset_0_0_100px_rgba(0,0,0,0.5)]' :
+                gameState === 'active' ? 'bg-emerald-500 text-white shadow-[inset_0_0_100px_rgba(0,0,0,0.5)]' : ''
             }`}
         >
             {gameState === 'waiting' && !result && (
-                <div className="text-center p-8">
-                    <Zap className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                    <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-xl overflow-hidden border border-white/60">
-        <div className="bg-[#423633] p-10 text-[#F5E6DE] relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-gradient-to-l from-amber-500/20 to-transparent mix-blend-screen opacity-50 blur-[60px] transform translate-x-1/3 -translate-y-1/3"></div>
-          <div className="relative z-10 flex flex-col items-center text-center">
-            <div className="p-4 bg-white/10 backdrop-blur-sm rounded-2xl shadow-inner border border-white/20 mb-6">
-                <Zap className="w-10 h-10 text-amber-400" />
-            </div>
-            <div>
-                <h2 className="text-4xl font-extrabold tracking-tight mb-2">ThinQTrace Assessment</h2>
-                <div className="inline-flex items-center space-x-2 bg-amber-500/20 text-amber-300 px-4 py-1.5 rounded-full font-semibold text-xs uppercase tracking-widest border border-amber-500/30">
-                    Reaction Time Diagnostics
-                </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-10">
-            <h3 className="text-2xl font-bold text-slate-700 mb-2">Click anywhere to start</h3>
-            <p className="text-slate-500">When the red box turns green, click as fast as you can.</p>
-        </div>
-    </div>
+                <div className="text-center p-8 max-w-xl relative z-10 animate-in fade-in slide-in-from-bottom-4">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-amber-500/5 rounded-full blur-[60px] pointer-events-none"></div>
+                    <div className="bg-amber-500/10 p-6 rounded-3xl inline-block mb-6 border border-amber-500/20 relative">
+                        <Zap className="w-16 h-16 text-amber-400" />
+                    </div>
+                    <h3 className="text-3xl font-black text-[#FDFBF9] mb-4 tracking-tight">Click anywhere to start</h3>
+                    <p className="text-[#A6958E] text-lg leading-relaxed">When the red background turns green, tap or click as fast as you can.</p>
                 </div>
             )}
 
             {gameState === 'ready' && (
                 <div className="text-center p-8 animate-pulse">
-                    <AlertCircle className="w-16 h-16 text-white/50 mx-auto mb-4" />
-                    <h3 className="text-4xl font-extrabold mb-2">Wait for green...</h3>
+                    <span className="text-sm font-bold text-white/70 uppercase tracking-wider bg-black/20 px-4 py-2 rounded-xl mb-4 inline-block">Round {round} / 5</span>
+                    <AlertCircle className="w-20 h-20 text-white/50 mx-auto mb-6" />
+                    <h3 className="text-5xl font-black mb-2 tracking-tight">Wait for green...</h3>
                 </div>
             )}
 
             {gameState === 'active' && (
                 <div className="text-center p-8 scale-110 transition-transform">
-                    <Zap className="w-20 h-20 text-white mx-auto mb-4 animate-bounce" />
-                    <h3 className="text-5xl font-black uppercase tracking-widest">Click Now!</h3>
+                    <Zap className="w-28 h-28 text-white mx-auto mb-6 animate-bounce" />
+                    <h3 className="text-6xl font-black uppercase tracking-widest">Click Now!</h3>
                 </div>
             )}
 
             {gameState === 'done' && loading && (
-                <div className="text-center p-8 animate-pulse">
-                    <div className="w-12 h-12 border-4 border-amber-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-slate-500 font-bold uppercase tracking-widest">Analyzing Response...</p>
+                <div className="text-center p-8 animate-pulse text-[#FDFBF9]">
+                    <div className="w-16 h-16 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+                    <p className="text-amber-400 font-bold uppercase tracking-widest">Analyzing Response...</p>
                 </div>
             )}
 
             {gameState === 'done' && !loading && result && (
-                <div className="text-center p-8 animate-in slide-in-from-bottom-4">
-                    <h3 className="text-2xl font-bold text-slate-700 mb-2">Response Time</h3>
-                    <p className="text-6xl font-black text-amber-500 mb-8">{result.responseTimeMs} <span className="text-2xl text-slate-400">ms</span></p>
+                <div className="text-center p-8 animate-in slide-in-from-bottom-8 relative z-10">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-amber-500/10 rounded-full blur-[80px] pointer-events-none"></div>
+                    <h3 className="text-2xl font-bold text-[#A6958E] mb-2 uppercase tracking-widest">Avg Response Time</h3>
+                    <p className="text-7xl font-black text-amber-500 mb-10 drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]">
+                        {result.responseTimeMs} <span className="text-3xl text-[#A6958E] font-bold">ms</span>
+                    </p>
                     
                     <button 
-                        onClick={(e) => { e.stopPropagation(); handleStart(); }}
-                        className="px-8 py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-full font-bold text-lg transition-transform hover:scale-105 shadow-xl"
+                        onClick={(e) => { e.stopPropagation(); handleStartGame(); }}
+                        className="px-10 py-5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-[#110C0A] rounded-2xl font-black text-xl transition-all hover:scale-105 shadow-[0_0_30px_rgba(245,158,11,0.3)]"
                     >
                         Try Again
                     </button>

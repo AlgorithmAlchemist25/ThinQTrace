@@ -28,7 +28,8 @@ export default function TaskInterface() {
       const response = await axios.post('http://localhost:8000/api/submit-data', {
         sessionId,
         taskType: 'typing-test',
-        events
+        events,
+        token: localStorage.getItem('token')
       });
       setResult(response.data);
     } catch (error) {
@@ -38,45 +39,50 @@ export default function TaskInterface() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-8">
+    <div className="max-w-4xl mx-auto p-4 sm:p-8 animate-in fade-in zoom-in-95 duration-500 pb-12">
       
       <div className="mb-8 flex items-center justify-between">
           <div>
-            <Link to="/" className="inline-flex items-center text-slate-500 hover:text-blue-600 font-semibold mb-2 transition-colors">
+            <Link to="/" className="inline-flex items-center text-[#A6958E] hover:text-indigo-400 font-semibold mb-2 transition-colors">
                 <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
             </Link>
-            <h2 className="text-4xl font-extrabold text-slate-900 tracking-tight">Typing Test</h2>
+            <h2 className="text-4xl font-black text-[#FDFBF9] tracking-tight">Typing Test</h2>
+          </div>
+          <div className="bg-indigo-500/10 border border-indigo-500/20 p-4 rounded-2xl">
+              <Activity className="w-10 h-10 text-indigo-400" />
           </div>
       </div>
 
-      <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-xl overflow-hidden border border-white/60">
-        <div className="bg-[#423633] p-10 text-[#F5E6DE] relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-gradient-to-l from-indigo-500/20 to-transparent mix-blend-screen opacity-50 blur-[60px] transform translate-x-1/3 -translate-y-1/3"></div>
+      <div className="bg-[#1F1715]/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/5 overflow-hidden">
+        <div className="bg-[#150F0D] p-10 text-[#FDFBF9] relative overflow-hidden border-b border-white/5">
+            <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-gradient-to-l from-indigo-500/10 to-transparent mix-blend-screen opacity-50 blur-[60px] transform translate-x-1/3 -translate-y-1/3"></div>
           <div className="relative z-10 flex flex-col items-center text-center">
-            <div className="p-4 bg-white/10 backdrop-blur-sm rounded-2xl shadow-inner border border-white/20 mb-6">
+            <div className="p-4 bg-indigo-500/10 backdrop-blur-sm rounded-2xl shadow-inner border border-indigo-500/20 mb-6">
                 <Activity className="w-10 h-10 text-indigo-400" />
             </div>
             <div>
-                <h2 className="text-4xl font-extrabold tracking-tight mb-2">ThinQTrace Assessment</h2>
-                <div className="inline-flex items-center space-x-2 bg-indigo-500/20 text-indigo-300 px-4 py-1.5 rounded-full font-semibold text-xs uppercase tracking-widest border border-indigo-500/30">
+                <h2 className="text-4xl font-black tracking-tight mb-3">ThinQTrace Assessment</h2>
+                <div className="inline-flex items-center space-x-2 bg-indigo-500/10 text-indigo-400 px-4 py-1.5 rounded-full font-bold text-xs uppercase tracking-widest border border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.1)]">
                     Behavioral Cognitive Detection
                 </div>
             </div>
           </div>
         </div>
 
-        <div className="p-10">
-            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 mb-8 shadow-sm">
-                <p className="text-slate-500 font-bold uppercase tracking-wider text-sm mb-3">Target Text</p>
-                <p className="text-slate-800 text-xl font-medium leading-relaxed select-none">
+        <div className="p-10 relative">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[30rem] h-[30rem] bg-indigo-500/5 rounded-full blur-[80px] pointer-events-none"></div>
+            
+            <div className="bg-[#110C0A] p-6 rounded-3xl border border-white/5 mb-8 shadow-inner relative z-10">
+                <p className="text-[#A6958E] font-bold uppercase tracking-wider text-sm mb-3">Target Text</p>
+                <p className="text-[#D4C3BA] text-xl font-medium leading-relaxed select-none">
                 {SAMPLE_TEXT}
                 </p>
             </div>
 
             {isTaskActive ? (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10">
                 <textarea
-                    className="w-full h-48 p-6 bg-slate-50/50 border-2 border-indigo-200/50 focus:border-indigo-400 focus:bg-white rounded-2xl outline-none resize-none text-xl transition-all shadow-inner relative z-10 placeholder-slate-400 text-slate-700"
+                    className="w-full h-48 p-6 bg-[#110C0A] border-2 border-indigo-500/30 focus:border-indigo-400 focus:bg-[#1A1311] rounded-3xl outline-none resize-none text-xl transition-all shadow-inner relative z-10 placeholder-[#A6958E] text-[#FDFBF9]"
                     placeholder="Start typing the text above here..."
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
@@ -84,23 +90,25 @@ export default function TaskInterface() {
                 />
                 <button 
                     onClick={handleSubmit}
-                    className="w-full py-5 bg-gradient-to-r from-[#4E403D] to-[#2D2422] hover:from-[#3B302E] hover:to-[#1A1413] text-white rounded-2xl font-bold text-xl transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1"
+                    className="w-full py-5 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-[#110C0A] rounded-2xl font-black text-xl transition-all shadow-[0_0_30px_rgba(99,102,241,0.2)] hover:shadow-[0_0_40px_rgba(99,102,241,0.4)] transform hover:-translate-y-1"
                 >
                     Submit Assessment
                 </button>
                 </div>
             ) : (
+                <div className="relative z-10">
                 <button 
                 onClick={handleStart}
-                className="w-full py-5 bg-[#D4C3BA] hover:bg-[#C2AEB4] text-[#423633] rounded-2xl font-bold text-xl transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                className="w-full py-5 bg-[#150F0D] hover:bg-[#0A0706] text-[#FDFBF9] border border-white/10 rounded-2xl font-black text-xl transition-all hover:border-indigo-500/50 shadow-lg"
                 >
                 {result ? "Restart Assessment" : "Start Assessment"}
                 </button>
+                </div>
             )}
 
             {loading && (
-                <div className="mt-8 pt-8 border-t border-slate-100 text-center animate-pulse">
-                    <div className="inline-flex items-center justify-center space-x-3 text-blue-600 font-medium">
+                <div className="mt-8 pt-8 border-t border-white/5 text-center animate-pulse relative z-10">
+                    <div className="inline-flex items-center justify-center space-x-3 text-indigo-400 font-bold tracking-widest uppercase">
                         <Activity className="w-6 h-6 animate-spin" />
                         <span>Analyzing behavioral telemetry...</span>
                     </div>
@@ -108,31 +116,31 @@ export default function TaskInterface() {
             )}
 
             {result && (
-                <div className={`mt-8 p-8 rounded-3xl border-2 transition-all animate-in zoom-in duration-500 ${result.cognitive_score === 'High' ? 'bg-red-50 border-red-200' : result.cognitive_score === 'Medium' ? 'bg-amber-50 border-amber-200' : 'bg-emerald-50 border-emerald-200'}`}>
-                <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-2xl font-extrabold text-slate-800">Assessment Results</h3>
-                    <span className={`px-4 py-1 rounded-full text-sm font-bold uppercase tracking-wider ${result.cognitive_score === 'High' ? 'bg-red-200 text-red-800' : result.cognitive_score === 'Medium' ? 'bg-amber-200 text-amber-800' : 'bg-emerald-200 text-emerald-800'}`}>
+                <div className="mt-12 p-10 rounded-3xl border border-white/5 bg-[#110C0A] shadow-inner transition-all animate-in zoom-in slide-in-from-bottom-8 duration-500 relative z-10">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 space-y-4 sm:space-y-0">
+                    <h3 className="text-3xl font-black text-[#FDFBF9]">Assessment Results</h3>
+                    <span className={`px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-wider border ${result.cognitive_score === 'High' ? 'bg-red-500/10 text-red-400 border-red-500/20' : result.cognitive_score === 'Medium' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>
                         Score Confirmed
                     </span>
                 </div>
-                <div className="grid grid-cols-2 gap-6">
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                    <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Cognitive Score</p>
-                    <p className={`text-4xl font-extrabold ${result.cognitive_score === 'High' ? 'text-red-600' : result.cognitive_score === 'Medium' ? 'text-amber-500' : 'text-emerald-500'}`}>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="bg-[#150F0D] p-6 rounded-3xl border border-white/5 shadow-inner flex flex-col items-center text-center">
+                    <p className="text-xs font-bold text-[#A6958E] uppercase tracking-widest mb-3">Cognitive Score</p>
+                    <p className={`text-3xl font-black drop-shadow-[0_0_10px_currentColor] ${result.cognitive_score === 'High' ? 'text-red-500' : result.cognitive_score === 'Medium' ? 'text-amber-500' : 'text-emerald-500'}`}>
                         {result.cognitive_score}
                     </p>
                     </div>
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                    <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Average Delay</p>
-                    <p className="text-3xl font-bold text-slate-700">{result.metrics.average_iki_ms} <span className="text-lg text-slate-400">ms</span></p>
+                    <div className="bg-[#150F0D] p-6 rounded-3xl border border-white/5 shadow-inner flex flex-col items-center text-center">
+                    <p className="text-xs font-bold text-[#A6958E] uppercase tracking-widest mb-3">Average Delay</p>
+                    <p className="text-3xl font-black text-indigo-400 drop-shadow-[0_0_10px_rgba(99,102,241,0.3)]">{result.metrics.average_iki_ms} <span className="text-lg text-[#A6958E]">ms</span></p>
                     </div>
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                    <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Variance</p>
-                    <p className="text-3xl font-bold text-slate-700">{result.metrics.variance}</p>
+                    <div className="bg-[#150F0D] p-6 rounded-3xl border border-white/5 shadow-inner flex flex-col items-center text-center">
+                    <p className="text-xs font-bold text-[#A6958E] uppercase tracking-widest mb-3">Variance</p>
+                    <p className="text-2xl font-black text-[#D4C3BA]">{result.metrics.variance}</p>
                     </div>
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                    <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Keystrokes</p>
-                    <p className="text-3xl font-bold text-slate-700">{result.metrics.key_count}</p>
+                    <div className="bg-[#150F0D] p-6 rounded-3xl border border-white/5 shadow-inner flex flex-col items-center text-center">
+                    <p className="text-xs font-bold text-[#A6958E] uppercase tracking-widest mb-3">Keystrokes</p>
+                    <p className="text-2xl font-black text-[#D4C3BA]">{result.metrics.key_count}</p>
                     </div>
                 </div>
                 </div>
