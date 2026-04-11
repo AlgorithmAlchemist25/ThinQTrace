@@ -141,3 +141,7 @@ ThinQTrace is designed with responsible AI principles.
 • Advanced ML models for behavioral pattern detection
 • Integration with productivity tools
 • Research dataset publication
+
+Contributers
+Isha Katiyar
+Janavi Arora
