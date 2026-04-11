@@ -38,6 +38,8 @@ export default function Dashboard() {
   const [prediction, setPrediction] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
+  const [streak, setStreak] = useState(0);
+  const [productivity, setProductivity] = useState(0);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -59,6 +61,42 @@ export default function Dashboard() {
         }).catch(err => console.error(err));
     }
   }, []);
+
+  useEffect(() => {
+    if (scores.length > 0) {
+      // Calculate streak
+      const dates = [...new Set(scores.map(s => new Date(s.timestamp).toDateString()))].sort((a, b) => new Date(a) - new Date(b));
+      const today = new Date();
+      let currentStreak = 0;
+      if (dates.length > 0) {
+        let lastDate = new Date(dates[dates.length - 1]);
+        const diffFromToday = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
+        if (diffFromToday <= 1) { // last activity today or yesterday
+          currentStreak = 1;
+          for (let i = dates.length - 2; i >= 0; i--) {
+            const prevDate = new Date(dates[i]);
+            const diff = Math.floor((lastDate - prevDate) / (1000 * 60 * 60 * 24));
+            if (diff === 1) {
+              currentStreak++;
+              lastDate = prevDate;
+            } else {
+              break;
+            }
+          }
+        }
+      }
+      setStreak(currentStreak);
+
+      // Calculate productivity
+      const scoreMap = { 'High': 90, 'Medium': 60, 'Low': 30 };
+      const total = scores.reduce((sum, s) => sum + scoreMap[s.score], 0);
+      const avg = total / scores.length;
+      setProductivity(Math.round(avg));
+    } else {
+      setStreak(0);
+      setProductivity(0);
+    }
+  }, [scores]);
 
   // Mock Trend Data for the chart derived from scores (if empty, show generic data)
   const chartData = isLoggedIn && scores.length > 0 ? [...scores].reverse().slice(0, 7).map((s, i) => ({
@@ -87,14 +125,14 @@ export default function Dashboard() {
                   <Flame className="w-6 h-6 text-amber-500" />
                   <div>
                       <p className="text-[10px] text-[#A6958E] font-bold uppercase tracking-widest">Focus Streak</p>
-                      <p className="text-[#FDFBF9] font-black leading-none text-lg mt-0.5">5 Days</p>
+                      <p className="text-[#FDFBF9] font-black leading-none text-lg mt-0.5">{streak} Days</p>
                   </div>
               </div>
               <div className="bg-[#110C0A] px-5 py-3 rounded-2xl border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)] flex items-center space-x-3">
                   <TrendingUp className="w-6 h-6 text-emerald-500" />
                   <div>
                       <p className="text-[10px] text-[#A6958E] font-bold uppercase tracking-widest">Productivity</p>
-                      <p className="text-[#FDFBF9] font-black leading-none text-lg mt-0.5">87/100</p>
+                      <p className="text-[#FDFBF9] font-black leading-none text-lg mt-0.5">{productivity}/100</p>
                   </div>
               </div>
           </div>
@@ -140,13 +178,13 @@ export default function Dashboard() {
                   <h3 className="text-2xl font-black text-[#FDFBF9] mb-8 flex items-center relative z-10">
                       <LineChartIcon className="w-6 h-6 mr-3 text-indigo-400" /> Cognitive Trend (Weekly)
                   </h3>
-                  <div className="h-64 w-full relative z-10 flex items-center justify-center">
+                  <div className="h-64 w-full relative z-10 flex items-center justify-center min-h-[240px]">
                       {!isLoggedIn ? (
                           <p className="text-[#A6958E] font-medium text-lg">Log in to view your cognitive trend.</p>
                       ) : chartData.length === 0 ? (
                           <p className="text-[#A6958E] font-medium text-lg">Complete assessments to build your trend data.</p>
                       ) : (
-                          <ResponsiveContainer width="100%" height="100%">
+                          <ResponsiveContainer width="100%" height="100%" minHeight={240} minWidth={300}>
                               <LineChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: -20 }}>
                                   <XAxis dataKey="name" stroke="#A6958E" fontSize={12} tickLine={false} axisLine={false} />
                                   <YAxis stroke="#A6958E" fontSize={12} tickLine={false} axisLine={false} />

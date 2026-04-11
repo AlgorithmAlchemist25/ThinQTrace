@@ -1,5 +1,99 @@
 @import "tailwindcss";
 
+:root {
+  color-scheme: dark;
+  --page-bg: #110C0A;
+  --surface-bg: rgba(31, 23, 21, 0.95);
+  --surface-alt-bg: rgba(17, 12, 10, 0.9);
+  --panel-bg: #1F1715;
+  --panel-strong: #150F0D;
+  --text-primary: #FDFBF9;
+  --text-secondary: #A6958E;
+  --text-muted: #D4C3BA;
+  --accent-primary: #F59E0B;
+  --accent-secondary: #34D399;
+  --accent-highlight: #60A5FA;
+  --border-color: rgba(255,255,255,0.08);
+}
+
+.theme-light {
+  color-scheme: light;
+  --page-bg: #F5E8D8;
+  --surface-bg: rgba(255,255,255,0.92);
+  --surface-alt-bg: rgba(233, 220, 199, 0.92);
+  --panel-bg: rgba(255,255,255,0.98);
+  --panel-strong: #E7D7C2;
+  --text-primary: #2B2A27;
+  --text-secondary: #796C59;
+  --text-muted: #7A7060;
+  --accent-primary: #B58359;
+  --accent-secondary: #6B8F8F;
+  --accent-highlight: #8FA2B8;
+  --border-color: rgba(115,92,63,0.15);
+}
+
 body {
-  @apply bg-slate-50 text-slate-900;
+  @apply bg-[var(--page-bg)] text-[var(--text-primary)];
+}
+
+.theme-light .bg-\[\#110C0A\],
+.theme-light .bg-\[\#1F1715\],
+.theme-light .bg-\[\#150F0D\],
+.theme-light .bg-\[\#2D211E\] {
+  background-color: var(--surface-bg) !important;
+}
+
+.theme-light .bg-\[\#110C0A\]\/60,
+.theme-light .bg-\[\#1F1715\]\/80,
+.theme-light .bg-\[\#1F1715\]\/90,
+.theme-light .bg-\[\#110C0A\]\/10,
+.theme-light .bg-\[\#2D211E\]\/20 {
+  background-color: rgba(255,255,255,0.85) !important;
+}
+
+.theme-light .text-\[\#FDFBF9\],
+.theme-light .text-\[\#110C0A\] {
+  color: var(--text-primary) !important;
+}
+
+.theme-light .text-\[\#A6958E\],
+.theme-light .text-\[\#D4C3BA\],
+.theme-light .text-\[\#6B5E4E\] {
+  color: var(--text-secondary) !important;
+}
+
+.theme-light .border-white\/5,
+.theme-light .border-white\/10,
+.theme-light .border-white\/20 {
+  border-color: var(--border-color) !important;
+}
+
+.theme-light .shadow-\[0_0_15px_rgba\(245\,158\,11\,0\.1\)\],
+.theme-light .shadow-\[0_0_15px_rgba\(16\,185\,129\,0\.1\)\],
+.theme-light .shadow-\[0_0_15px_rgba\(99\,102\,241\,0\.3\)\] {
+  box-shadow: 0 0 30px rgba(115, 92, 63, 0.08) !important;
+}
+
+.theme-light .text-amber-400 {
+  color: #A66A32 !important;
+}
+
+.theme-light .text-emerald-400 {
+  color: #6B8F8F !important;
+}
+
+.theme-light .text-indigo-400 {
+  color: #8FA2B8 !important;
+}
+
+.theme-light .bg-amber-500\/10 {
+  background-color: rgba(181, 136, 99, 0.15) !important;
+}
+
+.theme-light .bg-emerald-500\/10 {
+  background-color: rgba(107, 143, 143, 0.15) !important;
+}
+
+.theme-light .bg-\[\#4A3228\]\/20 {
+  background-color: rgba(133, 115, 97, 0.18) !important;
 }

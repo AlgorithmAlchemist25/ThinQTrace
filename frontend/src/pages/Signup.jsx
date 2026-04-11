@@ -1,86 +1,173 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { BrainCircuit } from 'lucide-react';
 
-const Signup = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+const Auth = () => {
+  const location = useLocation();
+  const [showLogin, setShowLogin] = useState(false);
+  const [signupUsername, setSignupUsername] = useState('');
+  const [signupPassword, setSignupPassword] = useState('');
+  const [loginUsername, setLoginUsername] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
   const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const routeIsLogin = location.pathname === '/login';
+    setShowLogin(routeIsLogin);
+    setError('');
+    setInfo('');
+  }, [location.pathname]);
 
   const handleSignup = async (e) => {
     e.preventDefault();
     setError('');
+    setInfo('');
     try {
       const response = await fetch('http://localhost:8000/api/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username: signupUsername, password: signupPassword }),
       });
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.detail || 'Signup failed');
       }
-      // redirect to login
-      navigate('/login');
+      setShowLogin(true);
+      setInfo('Signup successful! Please log in.');
+      setError('');
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError('');
+    try {
+      const response = await fetch('http://localhost:8000/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username: loginUsername, password: loginPassword }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.detail || 'Login failed');
+      }
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('username', data.username);
+      // Dispatch custom event to update Navbar state simply
+      window.dispatchEvent(new Event('authChange'));
+      navigate('/dashboard');
     } catch (err) {
       setError(err.message);
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh] px-4">
-      <div className="bg-[#1F1715]/60 backdrop-blur-md border border-white/10 rounded-2xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
-        <div className="absolute top-[-20%] right-[-20%] w-[50%] h-[50%] bg-amber-500/10 rounded-full blur-[80px]"></div>
-        
-        <div className="relative z-10 flex flex-col items-center mb-8">
-            <div className="bg-amber-500/10 p-3 rounded-2xl border border-amber-500/20 mb-4">
-                <BrainCircuit className="w-8 h-8 text-amber-400" />
-            </div>
-            <h2 className="text-3xl font-black tracking-tight text-[#FDFBF9]">Create Account</h2>
-            <p className="text-[#A6958E] mt-2 text-center">Start your cognitive assessment journey</p>
+    <div className="flex min-h-screen items-start justify-center bg-[#100803] px-4 pt-8 pb-10">
+      <div className="w-full max-w-md rounded-[28px] border border-white/10 bg-[#1c110a]/95 p-4 shadow-2xl">
+        <div className="flex flex-col items-center text-center mb-5">
+          <div className="flex items-center justify-center w-14 h-14 rounded-3xl bg-amber-500/10 border border-amber-500/20 mb-4">
+            <BrainCircuit className="w-7 h-7 text-amber-400" />
+          </div>
+          <h2 className="text-3xl font-black tracking-tight text-[#FDFBF9] mb-2">{showLogin ? 'Welcome Back' : 'Create your account'}</h2>
+          <p className="text-sm text-[#A6958E] max-w-xs">
+            {showLogin
+              ? 'Log in to continue tracking your cognitive performance.'
+              : 'Sign up now to start your personalized cognitive assessment journey.'}
+          </p>
         </div>
 
-        <form onSubmit={handleSignup} className="relative z-10 flex flex-col space-y-5">
-            {error && <div className="text-red-400 bg-red-400/10 p-3 rounded-lg text-sm text-center border border-red-400/20">{error}</div>}
-            
-            <div>
-                <label className="text-sm font-semibold text-[#A6958E] block mb-1">Username</label>
-                <input 
-                    type="text" 
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="w-full bg-[#110C0A] border border-white/10 rounded-xl px-4 py-3 text-[#FDFBF9] focus:outline-none focus:border-amber-500/50 transition-colors"
+        <div className="rounded-[24px] bg-[#221912]/95 border border-white/10 overflow-hidden">
+          <div className={`flex w-[200%] transition-transform duration-500 ease-out ${showLogin ? '-translate-x-1/2' : 'translate-x-0'}`}>
+            <div className="w-1/2 p-3">
+              {error && <div className="text-red-400 bg-red-400/10 p-3 rounded-lg text-sm text-center border border-red-400/20 mb-4">{error}</div>}
+              {info && <div className="text-amber-300 bg-amber-500/10 p-3 rounded-lg text-sm text-center border border-amber-500/20 mb-4">{info}</div>}
+
+              <form onSubmit={handleSignup} className="flex flex-col space-y-4">
+                <div>
+                  <label className="text-sm font-semibold text-[#D8C5A9] block mb-2">Username</label>
+                  <input
+                    type="text"
+                    value={signupUsername}
+                    onChange={(e) => setSignupUsername(e.target.value)}
+                    className="w-full bg-[#2b211b] border border-[#6e5a45] rounded-xl px-4 py-3 text-[#FDFBF9] placeholder:text-[#a8937f] focus:outline-none focus:border-amber-500/60 focus:bg-[#2f2722] transition-all"
                     placeholder="Choose a username"
                     required
-                />
-            </div>
+                  />
+                </div>
 
-            <div>
-                <label className="text-sm font-semibold text-[#A6958E] block mb-1">Password</label>
-                <input 
-                    type="password" 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-[#110C0A] border border-white/10 rounded-xl px-4 py-3 text-[#FDFBF9] focus:outline-none focus:border-amber-500/50 transition-colors"
+                <div>
+                  <label className="text-sm font-semibold text-[#D8C5A9] block mb-2">Password</label>
+                  <input
+                    type="password"
+                    value={signupPassword}
+                    onChange={(e) => setSignupPassword(e.target.value)}
+                    className="w-full bg-[#2b211b] border border-[#6e5a45] rounded-xl px-4 py-3 text-[#FDFBF9] placeholder:text-[#a8937f] focus:outline-none focus:border-amber-500/60 focus:bg-[#2f2722] transition-all"
                     placeholder="Create a strong password"
                     required
-                />
+                  />
+                </div>
+
+                <button type="submit" className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-[#110C0A] font-bold py-3 rounded-xl shadow-lg shadow-amber-500/20 transition-all hover:from-amber-400 hover:to-amber-500">
+                  Sign Up
+                </button>
+
+                <p className="text-[#A6958E] text-center mt-4">
+                  Already have an account? <button type="button" onClick={() => setShowLogin(true)} className="text-amber-400 hover:text-amber-300 font-semibold transition-colors">Log in</button>
+                </p>
+              </form>
             </div>
 
-            <button type="submit" className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-[#110C0A] font-bold py-3 rounded-xl shadow-lg shadow-amber-500/20 transition-all transform hover:scale-[1.02]">
-                Sign Up
-            </button>
-        </form>
+            <div className="w-1/2 border-l border-white/10 p-3">
+              {error && <div className="text-red-400 bg-red-400/10 p-3 rounded-lg text-sm text-center border border-red-400/20 mb-4">{error}</div>}
+              {info && <div className="text-amber-300 bg-amber-500/10 p-3 rounded-lg text-sm text-center border border-amber-500/20 mb-4">{info}</div>}
 
-        <p className="text-[#A6958E] text-center mt-6 relative z-10">
-            Already have an account? <Link to="/login" className="text-amber-400 hover:text-amber-300 font-semibold transition-colors">Log in</Link>
-        </p>
+              <form onSubmit={handleLogin} className="flex flex-col space-y-4">
+                <div>
+                  <label className="text-sm font-semibold text-[#D8C5A9] block mb-2">Username</label>
+                  <input
+                    type="text"
+                    value={loginUsername}
+                    onChange={(e) => setLoginUsername(e.target.value)}
+                    className="w-full bg-[#2b211b] border border-[#6e5a45] rounded-xl px-4 py-3 text-[#FDFBF9] placeholder:text-[#a8937f] focus:outline-none focus:border-amber-500/60 focus:bg-[#2f2722] transition-all"
+                    placeholder="Enter your username"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-[#D8C5A9] block mb-2">Password</label>
+                  <input
+                    type="password"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    className="w-full bg-[#2b211b] border border-[#6e5a45] rounded-xl px-4 py-3 text-[#FDFBF9] placeholder:text-[#a8937f] focus:outline-none focus:border-amber-500/60 focus:bg-[#2f2722] transition-all"
+                    placeholder="••••••••"
+                    required
+                  />
+                </div>
+
+                <button type="submit" className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-[#110C0A] font-bold py-3 rounded-xl shadow-lg shadow-amber-500/20 transition-all hover:from-amber-400 hover:to-amber-500">
+                  Log In
+                </button>
+
+                <p className="text-[#A6958E] text-center mt-4">
+                  Don't have an account? <button type="button" onClick={() => setShowLogin(false)} className="text-amber-400 hover:text-amber-300 font-semibold transition-colors">Sign up</button>
+                </p>
+              </form>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
-export default Signup;
+export default Auth;
