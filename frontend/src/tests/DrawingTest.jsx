@@ -293,9 +293,9 @@ export default function DrawingTest() {
                     <div className="bg-[#110C0A] p-8 rounded-3xl text-center border border-white/5 shadow-inner max-w-sm mx-auto mb-10">
                         <p className="text-xs font-bold text-[#A6958E] uppercase tracking-widest mb-3">Average Trace Deviation</p>
                         <p className="text-5xl font-black text-indigo-400 drop-shadow-[0_0_15px_rgba(99,102,241,0.3)]">
-                            {result.finalDeviationPx.toFixed(1)} <span className="text-2xl font-bold text-[#A6958E]">px</span>
+                            {result.finalDeviationPx.toFixed(1)} <span className="text-2xl font-bold text-[#A6958E]">/ 15 px</span>
                         </p>
-                        <p className="text-sm text-[#A6958E] mt-4">Lower deviation implies smoother fine motor control.</p>
+                        <p className="text-sm text-[#A6958E] mt-4">Lower deviation is better (Benchmark: 15px)</p>
                     </div>
                     
                     <button 

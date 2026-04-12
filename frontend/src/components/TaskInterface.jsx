@@ -140,7 +140,7 @@ export default function TaskInterface() {
                     </div>
                     <div className="bg-[#150F0D] p-6 rounded-3xl border border-white/5 shadow-inner flex flex-col items-center text-center">
                     <p className="text-xs font-bold text-[#A6958E] uppercase tracking-widest mb-3">Keystrokes</p>
-                    <p className="text-2xl font-black text-[#D4C3BA]">{result.metrics.key_count}</p>
+                    <p className="text-2xl font-black text-[#D4C3BA]">{result.metrics.key_count} <span className="text-sm text-[#A6958E]">/ {SAMPLE_TEXT.length}</span></p>
                     </div>
                 </div>
                 </div>

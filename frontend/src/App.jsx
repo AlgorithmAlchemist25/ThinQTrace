@@ -105,16 +105,16 @@ function App() {
                 {/* Main Content Area */}
                 <main className="flex-grow w-full py-8">
                     <Routes>
-                        <Route path="/" element={<Auth />} />
-                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/" element={user ? <Dashboard /> : <Auth />} />
+                        <Route path="/dashboard" element={user ? <Dashboard /> : <Auth />} />
                         <Route path="/tests" element={<Tests />} />
                         <Route path="/test/typing" element={<TaskInterface />} />
                         <Route path="/test/reaction" element={<ReactionTest />} />
                         <Route path="/test/attention" element={<AttentionTest />} />
                         <Route path="/test/drawing" element={<DrawingTest />} />
                         <Route path="/research" element={<Research />} />
-                        <Route path="/login" element={<Auth />} />
-                        <Route path="/signup" element={<Auth />} />
+                        <Route path="/login" element={user ? <Dashboard /> : <Auth />} />
+                        <Route path="/signup" element={user ? <Dashboard /> : <Auth />} />
                     </Routes>
                 </main>
 

@@ -157,6 +157,10 @@ export default function ReactionTest() {
                     <p className="text-7xl font-black text-amber-500 mb-10 drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]">
                         {result.responseTimeMs} <span className="text-3xl text-[#A6958E] font-bold">ms</span>
                     </p>
+                    <div className="flex justify-center space-x-4 mb-10">
+                         <span className="text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-full border border-emerald-500/20">Pro: &lt;250ms</span>
+                         <span className="text-[10px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-400 px-3 py-1 rounded-full border border-amber-500/20">Avg: 300ms</span>
+                    </div>
                     
                     <button 
                         onClick={(e) => { e.stopPropagation(); handleStartGame(); }}

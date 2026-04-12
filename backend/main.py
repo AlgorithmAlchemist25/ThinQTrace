@@ -292,33 +292,77 @@ def research_summary(token: str):
         raise HTTPException(status_code=401, detail="Unauthorized")
     user_id, username = row
     
-    c.execute("SELECT task_type, score, timestamp FROM sessions WHERE user_id = ? ORDER BY timestamp DESC", (user_id,))
+    c.execute("SELECT task_type, score, metrics, timestamp FROM sessions WHERE user_id = ? ORDER BY timestamp DESC", (user_id,))
     rows = c.fetchall()
     conn.close()
     
     if not rows:
-        return {"status": "success", "summary": {"overall": "Not enough data collected yet.", "strengths": [], "improvements": [], "total_assessments": 0}}
+        return {"status": "success", "summary": {"overall": "Not enough data collected yet.", "strengths": [], "improvements": [], "total_assessments": 0, "radar_data": []}}
         
     tests_taken = len(rows)
+    
+    # Categorical scoring
+    scores = {"Focus": [], "Agility": [], "Control": [], "Cadence": []}
+    
+    for r in rows:
+        task_type, _, metrics_json, _ = r
+        metrics = json.loads(metrics_json) if metrics_json else {}
+        
+        if task_type == "attention-test":
+            scores["Focus"].append(metrics.get("accuracy", 0))
+        elif task_type == "reaction-test":
+            rt = metrics.get("reaction_time_ms", 500)
+            agility = max(0, min(100, 100 - (rt - 150) / 4)) # 150ms is pro, 550ms is bad
+            scores["Agility"].append(agility)
+        elif task_type == "drawing-test":
+            dev = metrics.get("average_deviation_px", 50)
+            control = max(0, min(100, 100 - dev * 1.5))
+            scores["Control"].append(control)
+        elif task_type == "typing-test":
+            iki = metrics.get("average_iki_ms", 400)
+            cadence = max(0, min(100, 100 - (iki - 100) / 5))
+            scores["Cadence"].append(cadence)
+
+    avg_scores = {k: round(sum(v)/len(v)) if v else 50 for k, v in scores.items()}
+    radar_data = [
+        {"subject": "Focus", "A": avg_scores["Focus"], "fullMark": 100},
+        {"subject": "Agility", "A": avg_scores["Agility"], "fullMark": 100},
+        {"subject": "Control", "A": avg_scores["Control"], "fullMark": 100},
+        {"subject": "Cadence", "A": avg_scores["Cadence"], "fullMark": 100},
+    ]
+
+    # Threshold-based Insights Engine
+    strengths = []
+    improvements = []
+    
+    if avg_scores["Focus"] > 80: strengths.append("Exceptional selective attention and visual filtering accuracy.")
+    if avg_scores["Agility"] > 75: strengths.append("Superior neural processing speed and reaction velocity.")
+    if avg_scores["Control"] > 80: strengths.append("High precision in visual-motor synchronization and stability.")
+    if avg_scores["Cadence"] > 80: strengths.append("Fluent digital behavioral rhythm with minimal cognitive friction.")
+    
+    if avg_scores["Focus"] < 65: improvements.append("Attentional filtering load detected; minimize environmental noise.")
+    if avg_scores["Agility"] < 55: improvements.append("Sensory processing latency identified; check for ocular fatigue.")
+    if avg_scores["Control"] < 60: improvements.append("Motor control fluctuations detected; ensure stable input ergonomics.")
+    if avg_scores["Cadence"] < 60: improvements.append("Behavioral hesitation detected; prioritize bandwidth rest intervals.")
+
     high_stress = sum(1 for r in rows if r[1] == "High")
     
-    overall = f"Based on {tests_taken} recent assessments, {username} is showing "
     if high_stress > tests_taken * 0.4:
-        overall += "signs of high mental fatigue. Your focus is dropping and it's taking longer to process things. Taking a break right now is highly recommended."
-        strengths = ["Trying hard despite being tired", "Regular tracking"]
-        improvements = ["Take breaks to rest your eyes", "Get more quality sleep", "Drink more water while working"]
+        overall = f"Telemetric signals for {username} indicate significant cognitive fatigue. Your processing speed is fluctuating, suggesting high neuro-behavioral load requiring immediate bandwidth restoration."
+    elif avg_scores["Focus"] > 80 and avg_scores["Agility"] > 70:
+        overall = f"Optimal neuro-behavioral state detected for {username}. Your visual processing and response speed are currently aligned for high-complexity analytical tasks."
     else:
-        overall += "great mental focus and quick thinking! Your brain is sharp and processing information very efficiently."
-        strengths = ["Quick reaction time", "Good attention to detail", "Strong focus"]
-        improvements = ["Try even harder challenges", "Keep up your healthy routine"]
+        overall = f"Moderate cognitive friction detected for {username}. Performance is stable but shows intermittent fluctuations in focus and motor precision."
         
     return {
         "status": "success", 
         "summary": {
             "overall": overall,
-            "strengths": strengths,
-            "improvements": improvements,
-            "total_assessments": tests_taken
+            "strengths": strengths if strengths else ["Baseline stability established"],
+            "improvements": improvements if improvements else ["No critical optimizations detected"],
+            "total_assessments": tests_taken,
+            "radar_data": radar_data,
+            "category_scores": avg_scores
         }
     }
 

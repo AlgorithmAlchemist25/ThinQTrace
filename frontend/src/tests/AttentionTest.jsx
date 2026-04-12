@@ -30,14 +30,10 @@ export default function AttentionTest() {
         return { backgroundColor: 'hsl(150, 70%, 15%)' };
     }
     
-    const lightnessOffsets = {
-        1: 30,
-        2: 15,
-        3: 7,
-        4: 3,
-        5: 1
-    };
-    const targetLightness = 15 + (lightnessOffsets[currentRound] || 1);
+    // Smoothly scale difficulty over 10 rounds
+    // Round 1: +30 lightness, Round 10: +4 lightness (minimum visible threshold)
+    const lightnessOffset = Math.max(4, Math.round(30 * Math.pow(0.7, currentRound - 1)));
+    const targetLightness = 15 + lightnessOffset;
     
     return { backgroundColor: `hsl(150, 70%, ${targetLightness}%)` };
   };
@@ -65,13 +61,21 @@ export default function AttentionTest() {
       isCorrect: isCorrect
     });
 
-    if (round < 5) {
-        const nextRound = round + 1;
-        setRound(nextRound);
-        generateRound(nextRound);
+    if (isCorrect) {
+        if (round < 10) {
+            const nextRound = round + 1;
+            setRound(nextRound);
+            setGrid([]); // Briefly clear grid for visual transition
+            setTimeout(() => {
+                generateRound(nextRound);
+            }, 100);
+        } else {
+            setGameState('done');
+            await submitData();
+        }
     } else {
-        setGameState('done');
-        await submitData();
+        // Just record the error, but stay on the same screen (it "flickers" if we regenerate)
+        // We do NOT call generateRound here so it stays in place
     }
   };
 
@@ -145,7 +149,7 @@ export default function AttentionTest() {
         {gameState === 'active' && (
             <div className="relative z-10">
                 <div className="flex justify-between items-center mb-8 max-w-md mx-auto">
-                    <span className="text-sm font-bold text-[#A6958E] uppercase tracking-wider bg-[#110C0A] px-4 py-2 rounded-xl border border-white/5">Round {round} / 5</span>
+                    <span className="text-sm font-bold text-[#A6958E] uppercase tracking-wider bg-[#110C0A] px-4 py-2 rounded-xl border border-white/5">Round {round} / 10</span>
                     <span className="text-sm font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-xl animate-pulse shadow-[0_0_15px_rgba(16,185,129,0.2)]">Focus</span>
                 </div>
                 <div className="grid grid-cols-5 gap-3 max-w-md mx-auto p-6 bg-[#110C0A] rounded-3xl border border-white/5 shadow-inner">
@@ -176,7 +180,7 @@ export default function AttentionTest() {
                     <div className="grid grid-cols-2 gap-6 max-w-md mx-auto mb-12">
                         <div className="bg-[#110C0A] p-6 rounded-3xl text-center border border-white/5 shadow-inner">
                             <p className="text-xs font-bold text-[#A6958E] uppercase tracking-widest mb-3">Accuracy</p>
-                            <p className="text-5xl font-black text-emerald-400 drop-shadow-[0_0_15px_rgba(16,185,129,0.3)]">{result.metrics.accuracy}%</p>
+                            <p className="text-5xl font-black text-emerald-400 drop-shadow-[0_0_15px_rgba(16,185,129,0.3)]">{result.metrics.accuracy}<span className="text-2xl text-emerald-400/50">/100%</span></p>
                         </div>
                         <div className="bg-[#110C0A] p-6 rounded-3xl text-center border border-white/5 shadow-inner">
                             <p className="text-xs font-bold text-[#A6958E] uppercase tracking-widest mb-3">Avg Search Time</p>
