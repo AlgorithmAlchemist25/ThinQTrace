@@ -63,10 +63,6 @@ Database
 
 SQLite / MongoDB
 
-Machine Learning
-
-Scikit-learn
-
 Pandas
 
 NumPy
